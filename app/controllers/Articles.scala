@@ -26,7 +26,8 @@ import models.Article, Article._
 
 class Articles @Inject() (
   val messagesApi: MessagesApi,
-  val reactiveMongoApi: ReactiveMongoApi)
+  val reactiveMongoApi: ReactiveMongoApi,
+  implicit val materializer: akka.stream.Materializer)
     extends Controller with MongoController with ReactiveMongoComponents {
 
   import java.util.UUID

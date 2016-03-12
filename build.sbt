@@ -1,12 +1,14 @@
-import play.PlayImport.PlayKeys._
-
 name := "reactivemongo-demo-app"
 
-version := "0.11.10"
+val buildVersion = "0.11.11"
+
+version := buildVersion
+
+resolvers += "Sonatype Staging" at "https://oss.sonatype.org/content/repositories/staging/"
 
 scalaVersion := "2.11.7"
 
-libraryDependencies += "org.reactivemongo" %% "play2-reactivemongo" % "0.11.10"
+libraryDependencies += "org.reactivemongo" %% "play2-reactivemongo" % buildVersion
 
 routesGenerator := InjectedRoutesGenerator
 
