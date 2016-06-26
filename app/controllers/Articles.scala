@@ -51,20 +51,15 @@ class Articles @Inject() (
   } yield fs
 
   // list all articles and sort them
-  def index = Action.async { implicit request =>
+  val index = Action.async { implicit request =>
     // get a sort document (see getSort method for more information)
-    val sort: Option[JsObject] = getSort(request)
-    
-    // build a selection document with an empty query and a sort subdocument ('$orderby')
-    val query = Json.obj(
-      "$orderby" -> sort.fold[Json.JsValueWrapper](Json.obj())(identity),
-      "$query" -> Json.obj())
+    val sort: JsObject = getSort(request).getOrElse(Json.obj())
 
     val activeSort = request.queryString.get("sort").
       flatMap(_.headOption).getOrElse("none")
 
     // the cursor of documents
-    val found = collection.map(_.find(query).cursor[Article]())
+    val found = collection.map(_.find(Json.obj()).sort(sort).cursor[Article]())
 
     // build (asynchronously) a list containing all the articles
     found.flatMap(_.collect[List]()).map { articles =>
