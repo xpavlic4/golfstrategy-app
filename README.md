@@ -2,7 +2,7 @@
 
 This is a sample app to show in a few lines of code how MongoDB can be used to build a simple (yet full featured) web application.
 
-This example use the following:
+This example uses the following:
 * MongoDB (*yeah, no kidding*)
 * ReactiveMongo, a non-blocking and asynchronous Scala driver for MongoDB
 * Play 2.1 as a web framework
@@ -35,7 +35,7 @@ A document is a set of data, in BSON (Binary JSON). This means that the manipula
 
 As for data, queries are expressed in JSON style. It is very easy to write and read Mongo queries - you use the same format that you manipulate every day when you build web applications.
 
-But the real power of MongoDB is that it is very scalable. It is very easy to add replicas (for replication, or for balancing eventual consistent read operations), and shards: when you get a high volume of data, you can set up a new server that will store only a part of the data. Mongo handles the query routing so that it is transparent for the developpers.
+But the real power of MongoDB is that it is very scalable. It is very easy to add replicas (for replication, or for balancing eventual consistent read operations), and shards: when you get a high volume of data, you can set up a new server that will store only a part of the data. Mongo handles the query routing so that it is transparent for the developers.
 
 ### Simple Query
 
@@ -51,7 +51,7 @@ val cursor = collection.find(query).cursor[BSONDocument]
 val futureList = cursor.toList
 ```
 
-If we want to get only the documents that have a field *publisher* which value is *Stephane*, we may just write the following query:
+If we want to get only the documents that have a field *publisher* whose value is *Stephane*, we may just write the following query:
 
 ```scala
 val query = BSONDocument("publisher" -> "Stephane")
@@ -221,6 +221,6 @@ val futureResult: Future[ReadFile[BSONValue]] = gridFS.writeFromInputStream(file
 
 ## About the Web Application
 
-This web application uses all these features from MongoDB and ReactiveMongo. Obviously, they are adapated to fit the Play concepts - take a look to the code and start your own!
+This web application uses all these features from MongoDB and ReactiveMongo. Obviously, they are adapted to fit the Play concepts - take a look to the code and start your own!
 
 Author: [Stephane Godbillon](http://stephane.godbillon.com) - [Twitter](https://twitter.com/sgodbillon)
