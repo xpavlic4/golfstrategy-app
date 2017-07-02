@@ -1,7 +1,9 @@
-@(articles: List[models.Article], activeSort: String)
+@import helper._
+
+@(articles: List[models.Article], activeSort: String)(implicit r: RequestHeader)
 
 @main("Welcome to ReactiveMongo Demo") {
-  <p><strong>Made with ReactiveMongo:</strong> <a href="http://search.maven.org/#artifactdetails%7Corg.reactivemongo%7Creactivemongo_2.11%7C0.11.14%7C"><img src="https://maven-badges.herokuapp.com/maven-central/org.reactivemongo/reactivemongo_2.11/badge.png" /></a></p>
+  <p><strong>Made with ReactiveMongo:</strong> <a href="http://search.maven.org/#artifactdetails%7Corg.reactivemongo%7Creactivemongo_2.12%7C0.12.4%7C"><img src="https://maven-badges.herokuapp.com/maven-central/org.reactivemongo/reactivemongo_2.12/badge.png" /></a></p>
 
   <div class="row">
     <div class="span12">
@@ -25,7 +27,7 @@
       } else {
       <ul>
       @articles.map { article =>
-        <li><a href="@routes.Articles.showEditForm(article.id.get)">@article.title</a> <em>by @article.publisher</em> (last modified : @article.updateDate.map(u => org.joda.time.format.DateTimeFormat.forPattern("MMM dd, yyyy").print(u)).orElse(Some("n/a"))) - <a href="@routes.Articles.delete(article.id.get)" class="delete">delete</a></li>
+        <li><a href="@routes.Articles.showEditForm(article.id.get)">@article.title</a> <em>by @article.publisher</em> (last modified : @article.updateDate.map(u => org.joda.time.format.DateTimeFormat.forPattern("MMM dd, yyyy").print(u)).orElse(Some("n/a"))) - <a href="@helper.CSRF(routes.Articles.delete(article.id.get))" class="delete">delete</a></li>
       }
       </ul>
       }

@@ -71,13 +71,13 @@ class Articles @Inject() (
     }
   }
 
-  def showCreationForm = Action { request =>
+  def showCreationForm = Action { implicit request =>
     implicit val messages = messagesApi.preferred(request)
 
     Ok(views.html.editArticle(None, Article.form, None))
   }
 
-  def showEditForm(id: String) = Action.async { request =>
+  def showEditForm(id: String) = Action.async { implicit request =>
     // get the documents having this id (there will be 0 or 1 result)
     def futureArticle = collection.flatMap(
       _.find(Json.obj("_id" -> id)).one[Article])

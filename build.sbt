@@ -1,17 +1,17 @@
 name := "reactivemongo-demo-app"
 
-val buildVersion = "0.12.4"
+val buildVersion = "0.12.4-fix26"
 
 version := buildVersion
 
 resolvers += "Sonatype Staging" at "https://oss.sonatype.org/content/repositories/staging/"
 
-scalaVersion := "2.11.9"
+scalaVersion := "2.12.2"
 
 libraryDependencies ++= Seq(
-  //"com.typesafe.play" %% "play-iteratees" % "2.5.15",
-  ("org.reactivemongo" %% "play2-reactivemongo" % buildVersion).
-    exclude("com.typesafe.play", "*")
+  guice,
+  "com.typesafe.play" %% "play-iteratees" % "2.6.1",
+  "org.reactivemongo" %% "play2-reactivemongo" % buildVersion
 )
 
 routesGenerator := InjectedRoutesGenerator
