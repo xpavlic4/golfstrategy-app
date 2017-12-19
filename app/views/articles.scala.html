@@ -2,8 +2,7 @@
 
 @(articles: List[models.Article], activeSort: String)(implicit r: RequestHeader)
 
-@main("Welcome to ReactiveMongo Demo") {
-  <p><strong>Made with ReactiveMongo:</strong> <a href="http://search.maven.org/#artifactdetails%7Corg.reactivemongo%7Creactivemongo_2.12%7C0.12.4%7C"><img src="https://maven-badges.herokuapp.com/maven-central/org.reactivemongo/reactivemongo_2.12/badge.png" /></a></p>
+@main("Golf drills directory") {
 
   <div class="row">
     <div class="span12">
@@ -17,8 +16,6 @@
           <li @if(activeSort == "-publisher"){class="active"}><a href="@routes.Articles.index?sort=-publisher">-publisher</a></li>
           <li @if(activeSort == "creationDate"){class="active"}><a href="@routes.Articles.index?sort=creationDate">creation</a></li>
           <li @if(activeSort == "-creationDate"){class="active"}><a href="@routes.Articles.index?sort=-creationDate">-creation</a></li>
-          <li @if(activeSort == "updateDate"){class="active"}><a href="@routes.Articles.index?sort=updateDate">update</a></li>
-          <li @if(activeSort == "-updateDate"){class="active"}><a href="@routes.Articles.index?sort=-updateDate">-update</a></li>
           <li @if(activeSort == "none"){class="active"}><a href="@routes.Articles.index">none</a></li>
         </ul>
       </div>
@@ -27,7 +24,7 @@
       } else {
       <ul>
       @articles.map { article =>
-        <li><a href="@routes.Articles.showEditForm(article.id.get)">@article.title</a> <em>by @article.publisher</em> (last modified : @article.updateDate.map(u => org.joda.time.format.DateTimeFormat.forPattern("MMM dd, yyyy").print(u)).orElse(Some("n/a"))) - <a href="@helper.CSRF(routes.Articles.delete(article.id.get))" class="delete">delete</a></li>
+        <li><a href="@routes.Articles.showEditForm(article.id.get)">@article.groupId:@article.artifactId</a> <em>by @article.publisher</em>  <a href="@helper.CSRF(routes.Articles.delete(article.id.get))" class="delete">delete</a></li>
       }
       </ul>
       }

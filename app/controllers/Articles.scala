@@ -116,8 +116,8 @@ class Articles @Inject() (
       // if no error, then insert the article into the 'articles' collection
       article => collection.flatMap(_.insert(article.copy(
         id = article.id.orElse(Some(UUID.randomUUID().toString)),
-        creationDate = Some(new DateTime()),
-        updateDate = Some(new DateTime()))
+        creationDate = Some(new DateTime())
+        )
       )).map(_ => Redirect(routes.Articles.index))
     )
   }
@@ -136,8 +136,9 @@ class Articles @Inject() (
           // this modifier will set the fields
           // 'updateDate', 'title', 'content', and 'publisher'
           "$set" -> Json.obj(
-            "updateDate" -> BSONDateTime(new DateTime().getMillis),
-            "title" -> article.title,
+            
+            "groupId" -> article.groupId,
+            "artifactId" -> article.artifactId,
             "content" -> article.content,
             "publisher" -> article.publisher))
 
