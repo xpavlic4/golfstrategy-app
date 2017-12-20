@@ -1,6 +1,6 @@
 @import helper._
 
-@(id: Option[String], form: Form[models.Article], files: Option[List[(play.api.libs.json.JsString, reactivemongo.api.gridfs.ReadFile[reactivemongo.play.json.JSONSerializationPack.type, play.api.libs.json.JsString])]])(implicit r: RequestHeader, lang: play.api.i18n.Messages)
+@(id: Option[String], form: Form[models.Article])(implicit r: RequestHeader, messagesProvider: MessagesProvider)
 
 @main("Edit golf drill") {
   <div class="row">
@@ -23,22 +23,5 @@
     </div>
   }
   </div>
-  <div class="span4">
-  <h2>Attachments</h2>
-  @if(id.isDefined) {
-    @if(files.isDefined) {
-    <ul>
-      @files.get.map { file =>
-      <li><a href="@helper.CSRF(routes.Articles.getAttachment(file._1.value))">@file._2.filename</a> - <a target="_blank" href="@helper.CSRF(routes.Articles.getAttachment(file._1.value))?inline=true">inline</a> - <a class="delete" href="@helper.CSRF(routes.Articles.removeAttachment(file._1.value))">delete</a></li>
-      }
-    </ul>
-    }
-    @helper.form(action = helper.CSRF(routes.Articles.saveAttachment(id.get)), 'enctype -> "multipart/form-data") {
-      <input type="file" name="picture">
-      <div>
-        <input type="submit" class="btn">
-      </div>
-    }
-  }
   </div>
 }

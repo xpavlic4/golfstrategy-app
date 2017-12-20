@@ -1,30 +1,19 @@
 @import helper._
 
-@(articles: List[models.Article], activeSort: String)(implicit r: RequestHeader)
+
+@(articles: List[models.Article])(implicit r: RequestHeader, messagesProvider: MessagesProvider)
 
 @main("Golf drills directory") {
 
   <div class="row">
     <div class="span12">
       <h2>Available articles</h2>
-      <div id="sort">
-        <span>Sort by:</span>
-        <ul class="nav nav-pills">
-          <li @if(activeSort == "title"){class="active"}><a href="@routes.Articles.index?sort=title">title</a></li>
-          <li @if(activeSort == "-title"){class="active"}><a href="@routes.Articles.index?sort=-title">-title</a></li>
-          <li @if(activeSort == "publisher"){class="active"}><a href="@routes.Articles.index?sort=publisher">publisher</a></li>
-          <li @if(activeSort == "-publisher"){class="active"}><a href="@routes.Articles.index?sort=-publisher">-publisher</a></li>
-          <li @if(activeSort == "creationDate"){class="active"}><a href="@routes.Articles.index?sort=creationDate">creation</a></li>
-          <li @if(activeSort == "-creationDate"){class="active"}><a href="@routes.Articles.index?sort=-creationDate">-creation</a></li>
-          <li @if(activeSort == "none"){class="active"}><a href="@routes.Articles.index">none</a></li>
-        </ul>
-      </div>
       @if(articles.isEmpty) {
         <p>No articles available yet.</p>
       } else {
       <ul>
       @articles.map { article =>
-        <li><a href="@routes.Articles.showEditForm(article.id.get)">@article.groupId:@article.artifactId</a> <em>by @article.publisher</em>  <a href="@helper.CSRF(routes.Articles.delete(article.id.get))" class="delete">delete</a></li>
+        <li><a href="@routes.Articles.showEditForm(article.id.get)">@article.groupId:@article.artifactId</a>  <a href="@helper.CSRF(routes.Articles.delete(article.id.get))" class="delete">delete</a></li>
       }
       </ul>
       }
