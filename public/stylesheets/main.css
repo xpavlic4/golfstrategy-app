@@ -1,16 +1,3 @@
-#sort {
-	font-size: 0.9em;
-}
-
-#sort span, #sort li a, #sort li.active a {
-	padding: 2px;
-}
-
-#sort span {
-	display: block;
-	margin-right: 10px;
-	float: left;
-}
 
 a.delete { color: #CC0000; }
 h2 { margin-bottom: 20px;}
