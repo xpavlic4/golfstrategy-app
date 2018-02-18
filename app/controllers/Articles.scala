@@ -2,6 +2,8 @@ package controllers
 
 import javax.inject.Inject
 
+import scala.util.Failure
+
 import org.joda.time.DateTime
 
 import scala.concurrent.{ Await, Future, duration }, duration.Duration
@@ -9,10 +11,12 @@ import scala.concurrent.{ Await, Future, duration }, duration.Duration
 import play.api.Logger
 
 import play.api.i18n.{ I18nSupport, MessagesApi }
-import play.api.mvc.{ Action, Controller, Request }
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.mvc.{
+  Action, AbstractController, ControllerComponents, Request
+}
 import play.api.libs.json.{ Json, JsObject, JsString }
 
+import reactivemongo.api.Cursor
 import reactivemongo.api.gridfs.{ GridFS, ReadFile }
 
 import play.modules.reactivemongo.{
@@ -25,15 +29,18 @@ import reactivemongo.play.json.collection._
 import models.Article, Article._
 
 class Articles @Inject() (
-  val messagesApi: MessagesApi,
+  components: ControllerComponents,
   val reactiveMongoApi: ReactiveMongoApi,
-  implicit val materializer: akka.stream.Materializer)
-    extends Controller with MongoController with ReactiveMongoComponents {
+  implicit val materializer: akka.stream.Materializer
+) extends AbstractController(components)
+  with MongoController with ReactiveMongoComponents {
 
   import java.util.UUID
   import MongoController.readFileReads
 
   type JSONReadFile = ReadFile[JSONSerializationPack.type, JsString]
+
+  implicit def ec = components.executionContext
 
   // get the collection 'articles'
   def collection = reactiveMongoApi.database.
@@ -41,9 +48,9 @@ class Articles @Inject() (
 
   // a GridFS store named 'attachments'
   //val gridFS = GridFS(db, "attachments")
-  private val gridFS = for {
-    fs <- reactiveMongoApi.database.map(db =>
-      GridFS[JSONSerializationPack.type](db))
+  private def gridFS: Future[MongoController.JsGridFS] = for {
+    db <- reactiveMongoApi.database
+    fs = GridFS[JSONSerializationPack.type](db)
     _ <- fs.ensureIndex().map { index =>
       // let's build an index on our gridfs chunks collection if none
       Logger.info(s"Checked index, result is $index")
@@ -62,13 +69,14 @@ class Articles @Inject() (
     val found = collection.map(_.find(Json.obj()).sort(sort).cursor[Article]())
 
     // build (asynchronously) a list containing all the articles
-    found.flatMap(_.collect[List]()).map { articles =>
-      Ok(views.html.articles(articles, activeSort))
-    }.recover {
-      case e =>
-        e.printStackTrace()
-        BadRequest(e.getMessage())
-    }
+    found.flatMap(_.collect[List](-1, Cursor.FailOnError[List[Article]]())).
+      map { articles =>
+        Ok(views.html.articles(articles, activeSort))
+      }.recover {
+        case e =>
+          e.printStackTrace()
+          BadRequest(e.getMessage())
+      }
   }
 
   def showCreationForm = Action { implicit request =>
@@ -87,14 +95,17 @@ class Articles @Inject() (
     for {
       // get a future option of article
       maybeArticle <- futureArticle
-      // if there is some article, return a future of result with the article and its attachments
+      // if there is some article, return a future of result
+      // with the article and its attachments
       fs <- gridFS
       result <- maybeArticle.map { article =>
         // search for the matching attachments
         // find(...).toList returns a future list of documents
         // (here, a future list of ReadFileEntry)
         fs.find[JsObject, JSONReadFile](
-          Json.obj("article" -> article.id.get)).collect[List]().map { files =>
+          Json.obj("article" -> article.id.get)).
+          collect[List](-1, Cursor.FailOnError[List[JSONReadFile]]()).
+          map { files =>
 
           @inline def filesWithId = files.map { file => file.id -> file }
           implicit val messages = messagesApi.preferred(request)
@@ -151,8 +162,8 @@ class Articles @Inject() (
     // let's collect all the attachments matching that match the article to delete
     (for {
       fs <- gridFS
-      files <- fs.find[JsObject, JSONReadFile](
-        Json.obj("article" -> id)).collect[List]()
+      files <- fs.find[JsObject, JSONReadFile](Json.obj("article" -> id)).
+      collect[List](-1, Cursor.FailOnError[List[JSONReadFile]]())
       _ <- {
         // for each attachment, delete their chunks and then their file entry
         def deletions = files.map(fs.remove(_))
@@ -169,13 +180,12 @@ class Articles @Inject() (
 
   // save the uploaded file as an attachment of the article with the given id
   def saveAttachment(id: String) = {
-    def fs = Await.result(gridFS, Duration("5s"))
+    lazy val fs = Await.result(gridFS, Duration("5s"))
+
     Action.async(gridFSBodyParser(fs)) { request =>
       // here is the future file!
-      val futureFile = request.body.files.head.ref
-
-      futureFile.onFailure {
-        case err => err.printStackTrace()
+      val futureFile = request.body.files.head.ref.andThen {
+        case Failure(cause) => Logger.error("Fails to save file", cause)
       }
 
       // when the upload is complete, we add the article id to the file entry (in order to find the attachments of the article)
