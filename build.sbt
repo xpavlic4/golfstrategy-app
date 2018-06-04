@@ -1,12 +1,16 @@
 name := "reactivemongo-demo-app"
 
-val buildVersion = "0.13.0-play26"
+val buildVersion = "0.14.0-play26-SNAPSHOT"
 
 version := buildVersion
 
-resolvers += "Sonatype Staging" at "https://oss.sonatype.org/content/repositories/staging/"
+resolvers ++= Seq(
+  Resolver.sonatypeRepo("snapshots"),
+  "Sonatype Staging" at "https://oss.sonatype.org/content/repositories/staging/")
 
-scalaVersion := "2.12.4"
+scalacOptions in Compile += "-target:jvm-1.8"
+
+scalaVersion := "2.12.6"
 
 libraryDependencies ++= Seq(
   guice,
