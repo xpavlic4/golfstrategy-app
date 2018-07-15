@@ -5,7 +5,7 @@ This is a sample app to show in a few lines of code how MongoDB can be used to b
 This example uses the following:
 * MongoDB (*yeah, no kidding*)
 * ReactiveMongo, a non-blocking and asynchronous Scala driver for MongoDB
-* Play 2.1 as a web framework
+* Play 2+ as a web framework
 * Play ReactiveMongo plugin
 
 This application manages articles. An article has a title, a text content and a publisher. The articles can be updated and sorted by title, publisher, creation/update date, etc. One or more attachments can be uploaded and bound to an article (like an image, a pdf, an archive...). All the classic CRUD operations are implemented.
