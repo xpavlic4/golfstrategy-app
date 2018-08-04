@@ -1,6 +1,6 @@
 name := "reactivemongo-demo-app"
 
-val buildVersion = "0.15.1"
+val buildVersion = "0.16.0"
 
 version := buildVersion
 
@@ -12,13 +12,23 @@ scalacOptions in Compile += "-target:jvm-1.8"
 
 scalaVersion := "2.12.6"
 
-libraryDependencies ++= Seq(
-  guice,
-  "com.typesafe.play" %% "play-iteratees" % "2.6.1",
-  "com.typesafe.akka" %% "akka-slf4j" % "2.5.4",
-  "org.reactivemongo" %% "play2-reactivemongo" % s"${buildVersion}-play26",
-  "org.reactivemongo" % "reactivemongo-shaded-native" % s"${buildVersion}-linux-x86-64"
-)
+libraryDependencies ++= {
+  val (playVer, nativeVer) = buildVersion.span(_ != '-') match {
+    case (major, "") =>
+      s"${major}-play26" -> s"${major}-linux-x86-64"
+
+    case (major, mod) =>
+      s"${major}-play26${mod}" -> s"${major}-linux-x86-64${mod}"
+  }
+
+  Seq(
+    guice,
+    "com.typesafe.play" %% "play-iteratees" % "2.6.1",
+    "com.typesafe.akka" %% "akka-slf4j" % "2.5.4",
+    "org.reactivemongo" %% "play2-reactivemongo" % playVer,
+    "org.reactivemongo" % "reactivemongo-shaded-native" % nativeVer
+  )
+}
 
 routesGenerator := InjectedRoutesGenerator
 

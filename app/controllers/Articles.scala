@@ -180,24 +180,20 @@ class Articles @Inject() (
 
   // save the uploaded file as an attachment of the article with the given id
   def saveAttachment(id: String) = {
-    lazy val fs = Await.result(gridFS, Duration("5s"))
+    val gfs = gridFS
+    lazy val fs = Await.result(gfs, Duration("5s"))
 
-    Action.async(gridFSBodyParser(fs)) { request =>
-      // here is the future file!
-      val futureFile = request.body.files.head.ref.andThen {
-        case Failure(cause) => Logger.error("Fails to save file", cause)
-      }
+    Action.async(gridFSBodyParser(gfs)) { request =>
+      val file = request.body.files.head.ref
 
-      // when the upload is complete, we add the article id to the file entry (in order to find the attachments of the article)
-      val futureUpdate = for {
-        file <- futureFile
-        // here, the file is completely uploaded, so it is time to update the article
-        updateResult <- fs.files.update(
-          Json.obj("_id" -> file.id),
-          Json.obj("$set" -> Json.obj("article" -> id)))
-      } yield Redirect(routes.Articles.showEditForm(id))
+      // when the upload is complete, we add the article id to the file entry
+      // (in order to find the attachments of the article)
 
-      futureUpdate.recover {
+      fs.files.update(
+        Json.obj("_id" -> file.id),
+        Json.obj("$set" -> Json.obj("article" -> id))).map { _ =>
+        Redirect(routes.Articles.showEditForm(id))
+      }.recover {
         case e => InternalServerError(e.getMessage())
       }
     }
