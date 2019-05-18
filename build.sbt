@@ -1,6 +1,6 @@
 name := "reactivemongo-demo-app"
 
-val buildVersion = "0.17.0-SNAPSHOT"
+val buildVersion = "0.17.0"
 
 version := buildVersion
 
@@ -10,7 +10,7 @@ resolvers ++= Seq(
 
 scalacOptions in Compile += "-target:jvm-1.8"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.8"
 
 libraryDependencies ++= {
   val (playVer, nativeVer) = buildVersion.span(_ != '-') match {
