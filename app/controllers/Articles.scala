@@ -2,18 +2,13 @@ package controllers
 
 import javax.inject.Inject
 
-import scala.util.Failure
-
 import org.joda.time.DateTime
 
 import scala.concurrent.{ Await, Future, duration }, duration.Duration
 
 import play.api.Logger
 
-import play.api.i18n.{ I18nSupport, MessagesApi }
-import play.api.mvc.{
-  Action, AbstractController, ControllerComponents, Request
-}
+import play.api.mvc.{ AbstractController, ControllerComponents, Request }
 import play.api.libs.json.{ Json, JsObject, JsString }
 
 import reactivemongo.api.Cursor
@@ -53,7 +48,7 @@ class Articles @Inject() (
     fs = GridFS[JSONSerializationPack.type](db)
     _ <- fs.ensureIndex().map { index =>
       // let's build an index on our gridfs chunks collection if none
-      Logger.info(s"Checked index, result is $index")
+      Logger(s"Checked index, result is $index")
     }
   } yield fs
 
@@ -66,7 +61,8 @@ class Articles @Inject() (
       flatMap(_.headOption).getOrElse("none")
 
     // the cursor of documents
-    val found = collection.map(_.find(Json.obj()).sort(sort).cursor[Article]())
+    val found = collection.map(
+      _.find(Json.obj(), Option.empty[JsObject]).sort(sort).cursor[Article]())
 
     // build (asynchronously) a list containing all the articles
     found.flatMap(_.collect[List](-1, Cursor.FailOnError[List[Article]]())).
@@ -88,7 +84,7 @@ class Articles @Inject() (
   def showEditForm(id: String) = Action.async { implicit request =>
     // get the documents having this id (there will be 0 or 1 result)
     def futureArticle = collection.flatMap(
-      _.find(Json.obj("_id" -> id)).one[Article])
+      _.find(Json.obj("_id" -> id), Option.empty[JsObject]).one[Article])
 
     // ... so we get optionally the matching article, if any
     // let's use for-comprehensions to compose futures
@@ -125,7 +121,7 @@ class Articles @Inject() (
         Ok(views.html.editArticle(None, errors, None))),
 
       // if no error, then insert the article into the 'articles' collection
-      article => collection.flatMap(_.insert(article.copy(
+      article => collection.flatMap(_.insert.one(article.copy(
         id = article.id.orElse(Some(UUID.randomUUID().toString)),
         creationDate = Some(new DateTime()),
         updateDate = Some(new DateTime()))
@@ -153,7 +149,7 @@ class Articles @Inject() (
             "publisher" -> article.publisher))
 
         // ok, let's do the update
-        collection.flatMap(_.update(Json.obj("_id" -> id), modifier).
+        collection.flatMap(_.update.one(Json.obj("_id" -> id), modifier).
           map { _ => Redirect(routes.Articles.index) })
       })
   }
@@ -173,7 +169,7 @@ class Articles @Inject() (
       coll <- collection
       _ <- {
         // now, the last operation: remove the article
-        coll.remove(Json.obj("_id" -> id))
+        coll.delete.one(Json.obj("_id" -> id))
       }
     } yield Ok).recover { case _ => InternalServerError }
   }
@@ -189,9 +185,9 @@ class Articles @Inject() (
       // when the upload is complete, we add the article id to the file entry
       // (in order to find the attachments of the article)
 
-      fs.files.update(
+      fs.files.update.one(
         Json.obj("_id" -> file.id),
-        Json.obj("$set" -> Json.obj("article" -> id))).map { _ =>
+        Json.obj(f"$$set" -> Json.obj("article" -> id))).map { _ =>
         Redirect(routes.Articles.showEditForm(id))
       }.recover {
         case e => InternalServerError(e.getMessage())

@@ -1,5 +1,3 @@
-@import helper._
-
 @(id: Option[String], form: Form[models.Article], files: Option[List[(play.api.libs.json.JsString, reactivemongo.api.gridfs.ReadFile[reactivemongo.play.json.JSONSerializationPack.type, play.api.libs.json.JsString])]])(implicit r: RequestHeader, lang: play.api.i18n.Messages)
 
 @main("Welcome to ReactiveMongo Demo") {
@@ -11,7 +9,7 @@
     } else {
       Edit
     } an article</h2>
-  @helper.form(action = helper.CSRF(if(!id.isDefined) routes.Articles.create else routes.Articles.edit(id.get)), 'class -> "form-horizontal") {
+  @helper.form(action = helper.CSRF(if(!id.isDefined) routes.Articles.create else routes.Articles.edit(id.get)), Symbol("class") -> "form-horizontal") {
     @helper.inputText(form("title"))
     @helper.inputText(form("publisher"))
     @helper.textarea(form("content"))
@@ -30,7 +28,7 @@
       }
     </ul>
     }
-    @helper.form(action = helper.CSRF(routes.Articles.saveAttachment(id.get)), 'enctype -> "multipart/form-data") {
+    @helper.form(action = helper.CSRF(routes.Articles.saveAttachment(id.get)), Symbol("enctype") -> "multipart/form-data") {
       <input type="file" name="picture">
       <div>
         <input type="submit" class="btn">
