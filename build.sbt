@@ -1,16 +1,50 @@
 name := "golfstrategy-app"
 
-version := "0.0.1"
+val buildVersion = "0.18.5"
 
-resolvers += "Sonatype Staging" at "https://oss.sonatype.org/content/repositories/staging/"
+version := buildVersion
 
-scalaVersion := "2.12.2"
+resolvers ++= Seq(
+  Resolver.sonatypeRepo("snapshots"),
+  "Sonatype Staging" at "https://oss.sonatype.org/content/repositories/staging/")
 
-libraryDependencies ++= Seq(
-  guice,
-  "com.typesafe.play" %% "play-iteratees" % "2.6.1",
-  "org.reactivemongo" %% "play2-reactivemongo" % "0.12.4-fix26"
+scalacOptions ++= Seq(
+  "-encoding", "UTF-8", "-target:jvm-1.8",
+  "-unchecked",
+  "-deprecation",
+  "-feature",
+  "-Xlint",
+  "-g:vars"
+  //"-Xfatal-warnings"
 )
+
+scalaVersion := "2.13.0"
+
+libraryDependencies ++= {
+  val os = sys.props.get("os.name") match {
+    case Some(osx) if osx.toLowerCase.startsWith("mac") =>
+      "osx"
+
+    case _ =>
+      "linux"
+  }
+
+  val (playVer, nativeVer) = buildVersion.span(_ != '-') match {
+    case (major, "") =>
+      s"${major}-play27" -> s"${major}-${os}-x86-64"
+
+    case (major, mod) =>
+      s"${major}-play27${mod}" -> s"${major}-${os}-x86-64${mod}"
+  }
+
+  Seq(
+    guice,
+    //"com.typesafe.play" %% "play-iteratees" % "2.6.1",
+    "com.typesafe.akka" %% "akka-slf4j" % "2.6.0-M3",
+    "org.reactivemongo" %% "play2-reactivemongo" % playVer,
+    "org.reactivemongo" % "reactivemongo-shaded-native" % nativeVer
+  )
+}
 
 routesGenerator := InjectedRoutesGenerator
 
